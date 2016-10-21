@@ -1,0 +1,3 @@
+{{ ansible_managed | comment }}
+
+{{ elasticsearch_sysconfig | encode_ini(ucase_prop=true) }}

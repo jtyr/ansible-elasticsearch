@@ -2,21 +2,14 @@
 
 galaxy_info:
   author: Jiri Tyr
-  description: Role which installs and configures elasticsearch
+  description: Role which installs and configures ElasticSearch
   license: MIT
-  min_ansible_version: 1.7
+  min_ansible_version: 2.1
   platforms:
     - name: EL
       versions:
         - all
   categories:
-    - system
+    - database
 dependencies:
-  - role: common/yumrepo
-    yumrepo_repos:
-      elasticsearch-1.4:
-        name: Elasticsearch repository for 1.4.x packages
-        baseurl: "{{ elasticsearch_yum_repo_url }}"
-        gpgcheck: 0
-  - common/elasticsearch
-  - oracle_java
+  - config_encoder_filters

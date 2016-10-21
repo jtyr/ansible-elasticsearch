@@ -1,6 +1,9 @@
 ---
 
-- name: Restart elasticsearch
+- name: Restart Elasticsearch service
   service:
-    name: elasticsearch
+    name: "{{ elasticsearch_service }}"
     state: restarted
+  when: >
+    elasticsearch_service_started is not defined or
+    not elasticsearch_service_started.changed

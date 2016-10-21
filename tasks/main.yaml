@@ -4,26 +4,62 @@
   assert:
     that: ansible_os_family == "RedHat"
 
-- name: Install elasticsearch package for RedHat
-  yum:
-    name: "{{ elasticsearch_pkg }}"
-    state: present
-  notify:
-    - Restart elasticsearch
+- name: Create Elasticsearch YUM repo file
+  yum_repository:
+    name: elasticsearch
+    description: Elasticsearch YUM repo
+    baseurl: "{{ elasticsearch_yum_repo_url }}"
+    gpgkey: "{{ elasticsearch_yum_repo_key }}"
+    params: "{{ elasticsearch_yum_repo_params }}"
   tags:
     - elasticsearch_pkg
 
-- name: Configure ES for certain hosts to be able to connect
+- name: Install Elasticsearch package
+  package:
+    name: "{{ elasticsearch_pkg }}"
+  notify:
+    - Restart Elasticsearch service
+  tags:
+    - elasticsearch_pkg
+
+- name: Install additional Elasticsearch packages
+  package:
+    name: "{{ item }}"
+  with_items: "{{ elasticsearch_additional_pkgs }}"
+  notify:
+    - Restart Elasticsearch service
+  tags:
+    - elasticsearch_pkg
+
+- name: Configure Elasticsearch
   template:
     src: elasticsearch.yml.j2
-    dest: /etc/elasticsearch/elasticsearch.yml
+    dest: "{{ elasticsearch_config_file }}"
   notify:
-    - Restart elasticsearch
+    - Restart Elasticsearch service
   tags:
     - elasticsearch_config
 
-- name: Start elasticsearch services
+- name: Configure Elasticsearch sysconfig
+  template:
+    src: elasticsearch.sysconfig.j2
+    dest: "{{ elasticsearch_sysconfig_file }}"
+  notify:
+    - Restart Elasticsearch service
+  tags:
+    - elasticsearch_config
+
+- name: Enable Elasticsearch service
   service:
-    name: elasticsearch
+    name: "{{ elasticsearch_service }}"
     enabled: yes
+  tags:
+    - elasticsearch_service
+
+- name: Start Elasticsearch service
+  service:
+    name: "{{ elasticsearch_service }}"
     state: started
+  register: elasticsearch_service_started
+  tags:
+    - elasticsearch_service
