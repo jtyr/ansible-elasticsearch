@@ -8,6 +8,7 @@
   yum_repository:
     name: elasticsearch
     description: Elasticsearch YUM repo
+    file: elastic
     baseurl: "{{ elasticsearch_yum_repo_url }}"
     gpgkey: "{{ elasticsearch_yum_repo_key }}"
     params: "{{ elasticsearch_yum_repo_params }}"
