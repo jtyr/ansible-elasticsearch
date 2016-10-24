@@ -139,6 +139,9 @@ Dependencies
 ------------
 
 - [`config_encoder_filters`](https://github.com/jtyr/ansible-config_encoder_filters)
+- [`filebeat`](https://github.com/jtyr/ansible-filebeat) (optional)
+- [`logstash`](https://github.com/jtyr/ansible-logstash) (optional)
+- [`kibana`](https://github.com/jtyr/ansible-kibana) (optional)
 - [`oracle-java`](https://github.com/jtyr/ansible-oracle_java) (optional)
 
 
