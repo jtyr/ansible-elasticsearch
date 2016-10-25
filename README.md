@@ -37,6 +37,9 @@ Example
     - elasticsearch
 ```
 
+The `logging.yml` file is not templated yet. Please let me know if you need
+it to be templatable and I will add it.
+
 
 Role variables
 --------------
