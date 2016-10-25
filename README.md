@@ -27,12 +27,30 @@ Example
 - hosts: myhost2
   vars:
     # Set binding to the main interface
-    elasticsearch_config:
-      network.bind_host: "{{ ansible_eth0.ipv4.address }}"
-      http.host: "{{ ansible_eth0.ipv4.address }}"
+    elasticsearch_config_network_bind_host: "{{ ansible_eth0.ipv4.address }}"
+    elasticsearch_config_http_host: "{{ ansible_eth0.ipv4.address }}"
     # Set new JVM heap size
     elasticsearch_sysconfig:
       es_heap_size: 512m
+  roles:
+    - elasticsearch
+
+# Example of how to add Elasticsearch scripts
+- hosts: myhost3
+  vars:
+    # Enable scripting
+    elasticsearch_config__custom:
+      script:
+        inline: "true"
+        indexed: "true"
+    # Create script files
+    elasticsearch_scripts:
+      # This is the filename
+      calculate-score.groovy: |-2
+        log(_score * 2) + my_modifier
+      # Another script
+      my_script.groovy: |-2
+        1 + my_var
   roles:
     - elasticsearch
 ```

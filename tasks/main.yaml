@@ -41,6 +41,17 @@
   tags:
     - elasticsearch_config
 
+- name: Install Elasticsearch scripts
+  template:
+    src: script.j2
+    dest: "{{ elasticsearch_scripts_path }}/{{ item.key }}"
+  with_dict: "{{ elasticsearch_scripts }}"
+  notify:
+    - Restart Elasticsearch service
+  tags:
+    - elasticsearch_config
+    - elasticsearch_scripts
+
 - name: Configure Elasticsearch sysconfig
   template:
     src: elasticsearch.sysconfig.j2
@@ -49,6 +60,7 @@
     - Restart Elasticsearch service
   tags:
     - elasticsearch_config
+    - elasticsearch_sysconfig
 
 - name: Enable Elasticsearch service
   service:
