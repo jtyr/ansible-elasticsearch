@@ -6,9 +6,8 @@
 
 - name: Create Elasticsearch YUM repo file
   yum_repository:
-    name: elasticsearch
-    description: Elasticsearch YUM repo
-    file: elastic
+    name: elastic
+    description: Elastic YUM repo
     baseurl: "{{ elasticsearch_yum_repo_url }}"
     gpgkey: "{{ elasticsearch_yum_repo_key }}"
     params: "{{ elasticsearch_yum_repo_params }}"
@@ -51,6 +50,16 @@
   tags:
     - elasticsearch_config
     - elasticsearch_scripts
+
+- name: Configure Elasticsearch JVM options
+  template:
+    src: jvm.options.j2
+    dest: "{{ elasticsearch_jvm_options_file }}"
+  notify:
+    - Restart Elasticsearch service
+  tags:
+    - elasticsearch_config
+    - elasticsearch_jvm_options
 
 - name: Configure Elasticsearch sysconfig
   template:

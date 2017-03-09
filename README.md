@@ -26,12 +26,27 @@ Example
 # Example of how to customize the configuration
 - hosts: myhost2
   vars:
-    # Set binding to the main interface
-    elasticsearch_config_network_bind_host: "{{ ansible_eth0.ipv4.address }}"
-    elasticsearch_config_http_host: "{{ ansible_eth0.ipv4.address }}"
-    # Set new JVM heap size
-    elasticsearch_sysconfig:
-      es_heap_size: 512m
+    # Bind the process to lo and eth1 network interfaces
+    elasticsearch_config_network_host:
+      - _local_
+      - _eth1_
+    # Set JVM heap size
+    elasticsearch_jvm_options_x_ms: 512m
+    elasticsearch_jvm_options_x_mx: 1g
+    # Setup cluster
+    elasticsearch_config__custom:
+      cluster:
+        name: production
+      node:
+        name: "{{ inventory_hostname }}"
+      discovery:
+        zen:
+          ping:
+            unicast:
+              hosts:
+                - server1
+                - server2
+                - server3
   roles:
     - elasticsearch
 
@@ -66,10 +81,10 @@ List of variables used by the role:
 
 ```
 # YUM repo URL
-elasticsearch_yum_repo_url: https://packages.elastic.co/elasticsearch/2.x/centos/
+elasticsearch_yum_repo_url: https://artifacts.elastic.co/packages/5.x/yum
 
 # YUM repo GPG key
-elasticsearch_yum_repo_key: https://packages.elastic.co/GPG-KEY-elasticsearch
+elasticsearch_yum_repo_key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
 
 # Additional YUM repo parameters
 elasticsearch_yum_repo_params: {}
@@ -89,11 +104,11 @@ elasticsearch_config_file: /etc/elasticsearch/elasticsearch.yml
 
 
 # Value of the bind_host option
-elasticsearch_config_network_bind_host: 127.0.0.1
+elasticsearch_config_network_host: 127.0.0.1
 
 # Default network options
 elasticsearch_config_network__default:
-  bind_host: "{{ elasticsearch_config_network_bind_host }}"
+  host: "{{ elasticsearch_config_network_host }}"
 
 # Custom network options
 elasticsearch_config_network__custom: {}
@@ -106,11 +121,11 @@ elasticsearch_config_network: "{{
 
 
 # Value of the bind_host option
-elasticsearch_config_http_host: 127.0.0.1
+elasticsearch_config_http_port: 9200
 
 # Default network options
 elasticsearch_config_http__default:
-  host: "{{ elasticsearch_config_http_host }}"
+  port: "{{ elasticsearch_config_http_port }}"
 
 # Custom network options
 elasticsearch_config_http__custom: {}
@@ -123,9 +138,17 @@ elasticsearch_config_http: "{{
 
 
 # Default elasticsearch configuration
-elasticsearch_config:
+elasticsearch_config__default:
   network: "{{ elasticsearch_config_network }}"
   http: "{{ elasticsearch_config_http }}"
+
+# Custom elasticsearch configuration
+elasticsearch_config__custom: {}
+
+# Final elasticsearch configuration
+elasticsearch_config: "{{
+  elasticsearch_config__default.update(elasticsearch_config__custom) }}{{
+  elasticsearch_config__default }}"
 
 
 # Path to the sysconfig file
@@ -137,22 +160,110 @@ elasticsearch_sysconfig:
 # Possible options:
 #elasticsearch_sysconfig:
 #  es_home: /usr/share/elasticsearch
+#  java_home: ""
 #  conf_dir: /etc/elasticsearch
 #  data_dir: /var/lib/elasticsearch
 #  log_dir: /var/log/elasticsearch
 #  pid_dir: /var/run/elasticsearch
-#  es_heap_size: 2g
-#  es_heap_newsize: ""
-#  es_direct_size: ""
 #  es_java_opts: ""
 #  restart_on_upgrade: "true"
-#  es_gc_log_file: /var/log/elasticsearch/gc.log
 #  es_user: elasticsearch
 #  es_group: elasticsearch
 #  es_startup_sleep_time: 5
 #  max_open_files: 65536
 #  max_locked_memory: unlimited
 #  max_map_count: 262144
+
+
+# Path to the scripts directory
+elasticsearch_scripts_path: /etc/elasticsearch/scripts
+
+# Scripts
+elasticsearch_scripts: {}
+
+
+# Location of the jvm.options file
+elasticsearch_jvm_options_file: /etc/elasticsearch/jvm.options
+
+# Values of the default JVM system properties
+elasticsearch_jvm_options_d_file_encoding: UTF-8
+elasticsearch_jvm_options_d_io_netty_noKeySetOptimization: "true"
+elasticsearch_jvm_options_d_io_netty_noUnsafe: "true"
+elasticsearch_jvm_options_d_io_netty_recycler_maxCapacityPerThread: 0
+elasticsearch_jvm_options_d_java_awt_headless: "true"
+elasticsearch_jvm_options_d_jdk_io_permissionsUseCanonicalPath: "true"
+elasticsearch_jvm_options_d_jna_nosys: "true"
+elasticsearch_jvm_options_d_log4j2_disable_jmx: "true"
+elasticsearch_jvm_options_d_log4j_shutdownHookEnabled: "false"
+elasticsearch_jvm_options_d_log4j_skipJansi: "true"
+
+# Default JVM system properties
+elasticsearch_jvm_options_d__default:
+  - file.encoding={{ elasticsearch_jvm_options_d_file_encoding }}
+  - io.netty.noKeySetOptimization={{ elasticsearch_jvm_options_d_io_netty_noKeySetOptimization }}
+  - io.netty.noUnsafe={{ elasticsearch_jvm_options_d_io_netty_noUnsafe }}
+  - io.netty.recycler.maxCapacityPerThread={{ elasticsearch_jvm_options_d_io_netty_recycler_maxCapacityPerThread }}
+  - java.awt.headless={{ elasticsearch_jvm_options_d_java_awt_headless }}
+  - jdk.io.permissionsUseCanonicalPath={{ elasticsearch_jvm_options_d_jdk_io_permissionsUseCanonicalPath }}
+  - jna.nosys={{ elasticsearch_jvm_options_d_jna_nosys }}
+  - log4j2.disable.jmx={{ elasticsearch_jvm_options_d_log4j2_disable_jmx }}
+  - log4j.shutdownHookEnabled={{ elasticsearch_jvm_options_d_log4j_shutdownHookEnabled }}
+  - log4j.skipJansi={{ elasticsearch_jvm_options_d_log4j_skipJansi }}
+
+# Custom JVM system properties
+elasticsearch_jvm_options_d__custom: []
+
+# Final JVM system properties
+elasticsearch_jvm_options_d: "{{
+  elasticsearch_jvm_options_d__default +
+  elasticsearch_jvm_options_d__custom }}"
+
+
+# Values of the default JVM non-standard options
+elasticsearch_jvm_options_x_ms: 2g
+elasticsearch_jvm_options_x_mx: 2g
+elasticsearch_jvm_options_x_ss: 1m
+elasticsearch_jvm_options_x_X_CMSInitiatingOccupancyFraction: 75
+elasticsearch_jvm_options_x_X_AlwaysPreTouch: yes
+elasticsearch_jvm_options_x_X_DisableExplicitGC: yes
+elasticsearch_jvm_options_x_X_HeapDumpOnOutOfMemoryError: yes
+elasticsearch_jvm_options_x_X_UseCMSInitiatingOccupancyOnly: yes
+elasticsearch_jvm_options_x_X_UseConcMarkSweepGC: yes
+
+# Default JVM non-standard options
+elasticsearch_jvm_options_x__default:
+  - ms{{ elasticsearch_jvm_options_x_ms }}
+  - mx{{ elasticsearch_jvm_options_x_mx }}
+  - ss{{ elasticsearch_jvm_options_x_ss }}
+  - X:CMSInitiatingOccupancyFraction={{ elasticsearch_jvm_options_x_X_CMSInitiatingOccupancyFraction }}
+  - X:{{ '+' if elasticsearch_jvm_options_x_X_AlwaysPreTouch else '-' }}AlwaysPreTouch
+  - X:{{ '+' if elasticsearch_jvm_options_x_X_DisableExplicitGC else '-' }}DisableExplicitGC
+  - X:{{ '+' if elasticsearch_jvm_options_x_X_HeapDumpOnOutOfMemoryError else '-' }}HeapDumpOnOutOfMemoryError
+  - X:{{ '+' if elasticsearch_jvm_options_x_X_UseCMSInitiatingOccupancyOnly else '-' }}UseCMSInitiatingOccupancyOnly
+  - X:{{ '+' if elasticsearch_jvm_options_x_X_UseConcMarkSweepGC else '-' }}UseConcMarkSweepGC
+
+# Custom JVM non-standard options
+elasticsearch_jvm_options_x__custom: []
+
+# Final JVM non-standard options
+elasticsearch_jvm_options_x: "{{
+  elasticsearch_jvm_options_x__default +
+  elasticsearch_jvm_options_x__custom }}"
+
+
+# Default JVM options
+elasticsearch_jvm_options__default:
+  -server: " "
+  -D: "{{ elasticsearch_jvm_options_d }}"
+  -X: "{{ elasticsearch_jvm_options_x }}"
+
+# Custom JVM options
+elasticsearch_jvm_options__custom: {}
+
+# Final JVM options
+elasticsearch_jvm_options: "{{
+  elasticsearch_jvm_options__default.update(elasticsearch_jvm_options__custom) }}{{
+  elasticsearch_jvm_options__default }}"
 ```
 
 
