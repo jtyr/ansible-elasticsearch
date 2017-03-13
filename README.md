@@ -47,6 +47,9 @@ Example
                 - server1
                 - server2
                 - server3
+      # Required for CentOS 6
+      #bootstrap:
+      #   system_call_filter: false
   roles:
     - elasticsearch
 
@@ -154,25 +157,35 @@ elasticsearch_config: "{{
 # Path to the sysconfig file
 elasticsearch_sysconfig_file: /etc/sysconfig/elasticsearch
 
-# Sysconfig file configuration
-elasticsearch_sysconfig:
-  es_startup_sleep_time: 5
-# Possible options:
-#elasticsearch_sysconfig:
-#  es_home: /usr/share/elasticsearch
-#  java_home: ""
+# Vaules of the defautl sysconfig options
+elasticsearch_sysconfig_es_startup_sleep_time: 5
+
+# Defautl sysconfig options
+elasticsearch_sysconfig__default:
+  es_startup_sleep_time: "{{ elasticsearch_sysconfig_es_startup_sleep_time }}"
+# Possible values:
+#elasticsearch_sysconfig__default:
 #  conf_dir: /etc/elasticsearch
 #  data_dir: /var/lib/elasticsearch
-#  log_dir: /var/log/elasticsearch
-#  pid_dir: /var/run/elasticsearch
-#  es_java_opts: ""
-#  restart_on_upgrade: "true"
-#  es_user: elasticsearch
 #  es_group: elasticsearch
-#  es_startup_sleep_time: 5
-#  max_open_files: 65536
+#  es_home: /usr/share/elasticsearch
+#  es_java_opts: ""
+#  es_user: elasticsearch
+#  java_home: ""
+#  log_dir: /var/log/elasticsearch
 #  max_locked_memory: unlimited
 #  max_map_count: 262144
+#  max_open_files: 65536
+#  pid_dir: /var/run/elasticsearch
+#  restart_on_upgrade: "true"
+
+# Custom sysconfig options
+elasticsearch_sysconfig__custom: {}
+
+# Final sysconfig options
+elasticsearch_sysconfig: "{{
+  elasticsearch_sysconfig__default.update(elasticsearch_sysconfig__custom) }}{{
+  elasticsearch_sysconfig__default }}"
 
 
 # Path to the scripts directory
