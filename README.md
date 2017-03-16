@@ -84,10 +84,10 @@ List of variables used by the role:
 
 ```
 # YUM repo URL
-elasticsearch_yum_repo_url: https://artifacts.elastic.co/packages/5.x/yum
+elasticsearch_yum_repo_url: "{{ elastic_yum_repo_url | default('https://artifacts.elastic.co/packages/5.x/yum') }}"
 
 # YUM repo GPG key
-elasticsearch_yum_repo_key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+elasticsearch_yum_repo_key: "{{ elastic_yum_repo_key | default('https://artifacts.elastic.co/GPG-KEY-elasticsearch') }}"
 
 # Additional YUM repo parameters
 elasticsearch_yum_repo_params: {}
