@@ -90,7 +90,7 @@ elasticsearch_yum_repo_url: "{{ elastic_yum_repo_url | default('https://artifact
 elasticsearch_yum_repo_key: "{{ elastic_yum_repo_key | default('https://artifacts.elastic.co/GPG-KEY-elasticsearch') }}"
 
 # Additional YUM repo parameters
-elasticsearch_yum_repo_params: {}
+elasticsearch_yum_repo_params: "{{ elastic_yum_repo_params | default({}) }}"
 
 # Package to be installed (explicit version can be specified here)
 elasticsearch_pkg: elasticsearch
