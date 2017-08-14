@@ -2,7 +2,9 @@
 
 - name: Test distribution
   assert:
-    that: ansible_os_family == "RedHat"
+    that: >
+      ansible_os_family == 'RedHat' or
+      ansible_os_family == 'Debian'
 
 - name: Create Elasticsearch YUM repo file
   yum_repository:
@@ -11,21 +13,41 @@
     baseurl: "{{ elasticsearch_yum_repo_url }}"
     gpgkey: "{{ elasticsearch_yum_repo_key }}"
     params: "{{ elasticsearch_yum_repo_params }}"
+  when: >
+    ansible_os_family == 'RedHat'
+  tags:
+    - elasticsearch_pkg
+
+- name: Install Elasticsearch GPG key
+  apt_key:
+    url: "{{ elasticsearch_apt_repo_key }}"
+  when: >
+    ansible_os_family == 'Debian'
+  tags:
+    - elasticsearch_pkg
+    - elasticsearch_aptrepo
+
+- name: Create Elasticsearch APT repo file
+  apt_repository:
+    repo: "{{ elasticsearch_apt_repo_string }}"
+  when: >
+    ansible_os_family == 'Debian'
+  tags:
+    - elasticsearch_pkg
+    - elasticsearch_aptrepo
+
+- name: Install additional Elasticsearch packages
+  package:
+    name: "{{ item }}"
+  with_items: "{{ elasticsearch_additional_pkgs }}"
+  notify:
+    - Restart Elasticsearch service
   tags:
     - elasticsearch_pkg
 
 - name: Install Elasticsearch package
   package:
     name: "{{ elasticsearch_pkg }}"
-  notify:
-    - Restart Elasticsearch service
-  tags:
-    - elasticsearch_pkg
-
-- name: Install additional Elasticsearch packages
-  package:
-    name: "{{ item }}"
-  with_items: "{{ elasticsearch_additional_pkgs }}"
   notify:
     - Restart Elasticsearch service
   tags:
@@ -67,6 +89,8 @@
     dest: "{{ elasticsearch_sysconfig_file }}"
   notify:
     - Restart Elasticsearch service
+  when: >
+    ansible_os_family == 'RedHat'
   tags:
     - elasticsearch_config
     - elasticsearch_sysconfig

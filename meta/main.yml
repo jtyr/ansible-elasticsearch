@@ -9,7 +9,10 @@ galaxy_info:
     - name: EL
       versions:
         - all
-  categories:
+    - name: Ubuntu
+      versions:
+        - xenial
+  galaxy_tags:
     - database
 dependencies:
   - config_encoder_filters
