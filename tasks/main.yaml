@@ -73,6 +73,32 @@
     - elasticsearch_config
     - elasticsearch_scripts
 
+- name: Check installed plugins
+  shell: >
+    {{ elasticsearch_plugins_bin }} list 2>/dev/null
+  when: >
+    elasticsearch_plugins | length > 0
+  register: elasticsearch_plugins_installed_results
+  changed_when: false
+  tags:
+    - elasticsearch_plugins
+    - elasticsearch_plugins_check
+
+- name: Install plugins
+  shell: >
+    {{ elasticsearch_plugins_bin }} {{ elasticsearch_plugins_flags }} {{ item }}
+  when: >
+    elasticsearch_plugins | length > 0 and (
+      elasticsearch_plugins_installed_results is not defined or
+      item not in elasticsearch_plugins_installed_results.stdout_lines
+    )
+  with_items: "{{ elasticsearch_plugins }}"
+  notify:
+    - Restart Elasticsearch service
+  tags:
+    - elasticsearch_plugins
+    - elasticsearch_plugins_install
+
 - name: Configure Elasticsearch JVM options
   template:
     src: jvm.options.j2

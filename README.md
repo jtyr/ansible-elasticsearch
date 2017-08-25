@@ -53,7 +53,7 @@ Example
   roles:
     - elasticsearch
 
-# Example of how to add Elasticsearch scripts
+# Example of how to add Elasticsearch scripts and plugins
 - hosts: myhost3
   vars:
     # Enable scripting
@@ -69,6 +69,9 @@ Example
       # Another script
       my_script.groovy: |-2
         1 + my_var
+    # Install plugins
+    elasticsearch_plugins:
+      - x-pack
   roles:
     - elasticsearch
 ```
@@ -112,9 +115,19 @@ elasticsearch_additional_pkgs:
 # Name of the service
 elasticsearch_service: elasticsearch
 
+
+# Path to the elasticsearch-plugin executable
+elasticsearch_plugins_bin: /usr/share/elasticsearch/bin/elasticsearch-plugin
+
+# Plugin installation flags
+elasticsearch_plugins_flags: install --batch
+
+# List of plugins to install
+elasticsearch_plugins: []
+
+
 # Path to the config file
 elasticsearch_config_file: /etc/elasticsearch/elasticsearch.yml
-
 
 # Value of the bind_host option
 elasticsearch_config_network_host: 127.0.0.1
