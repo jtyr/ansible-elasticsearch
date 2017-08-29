@@ -53,7 +53,7 @@ Example
   roles:
     - elasticsearch
 
-# Example of how to add Elasticsearch scripts and plugins
+# Example of how to add Elasticsearch scripts, plugins and pipeline
 - hosts: myhost3
   vars:
     # Enable scripting
@@ -72,6 +72,20 @@ Example
     # Install plugins
     elasticsearch_plugins:
       - x-pack
+    # Create pipeline
+    elasticsearch_pipeline_auth:
+      user: elastic
+      password: changeme
+    elasticsearch_pipelines:
+      # Name of the pipeline
+      apache:
+        # Content of the pipeline
+        description: Parse Apache logs
+        processors:
+          - grok:
+              field: message
+              patterns:
+                - "%{COMBINEDAPACHELOG}"
   roles:
     - elasticsearch
 ```
@@ -120,10 +134,17 @@ elasticsearch_service: elasticsearch
 elasticsearch_plugins_bin: /usr/share/elasticsearch/bin/elasticsearch-plugin
 
 # Plugin installation flags
-elasticsearch_plugins_flags: install --batch
+elasticsearch_plugins_flags: --batch
 
 # List of plugins to install
 elasticsearch_plugins: []
+
+
+# Pipeline authentication
+elasticsearch_pipeline_auth: null
+
+# Pipelines
+elasticsearch_pipelines: {}
 
 
 # Path to the config file

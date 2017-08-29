@@ -34,10 +34,17 @@ elasticsearch_service: elasticsearch
 elasticsearch_plugins_bin: /usr/share/elasticsearch/bin/elasticsearch-plugin
 
 # Plugin installation flags
-elasticsearch_plugins_flags: install --batch
+elasticsearch_plugins_flags: --batch
 
 # List of plugins to install
 elasticsearch_plugins: []
+
+
+# Pipeline authentication
+elasticsearch_pipeline_auth: null
+
+# Pipelines
+elasticsearch_pipelines: {}
 
 
 # Path to the config file

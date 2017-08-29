@@ -86,8 +86,9 @@
 
 - name: Install plugins
   shell: >
-    {{ elasticsearch_plugins_bin }} {{ elasticsearch_plugins_flags }} {{ item }}
+    {{ elasticsearch_plugins_bin }} install {{ elasticsearch_plugins_flags }} {{ item }}
   when: >
+    item[0] != '!' and
     elasticsearch_plugins | length > 0 and (
       elasticsearch_plugins_installed_results is not defined or
       item not in elasticsearch_plugins_installed_results.stdout_lines
@@ -98,6 +99,74 @@
   tags:
     - elasticsearch_plugins
     - elasticsearch_plugins_install
+
+- name: Remove plugins
+  shell: >
+    {{ elasticsearch_plugins_bin }} remove {{ item[1:] }}
+  when: >
+    item[0] == '!' and
+    elasticsearch_plugins | length > 0 and (
+      elasticsearch_plugins_installed_results is not defined or
+      item[1:] in elasticsearch_plugins_installed_results.stdout_lines
+    )
+  with_items: "{{ elasticsearch_plugins }}"
+  notify:
+    - Restart Elasticsearch service
+  tags:
+    - elasticsearch_plugins
+    - elasticsearch_plugins_remove
+
+- name: Get defined pipelines
+  uri:
+    url: http://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline
+    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
+    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
+  register: elasticsearch_pipelines_defined_results
+  when: >
+    elasticsearch_pipelines | length > 0
+  failed_when: false
+  tags:
+    - elasticsearch_pipeline
+    - elasticsearch_pipeline_check
+
+- name: Defined pipelines
+  uri:
+    url: http://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key }}
+    method: PUT
+    body: "{{ item.value | to_json }}"
+    status_code: 200
+    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
+    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
+  register: elasticsearch_pipelines_define_results
+  when: >
+    item.key[0] != '!' and
+    elasticsearch_pipelines_defined_results is defined and
+    item.key not in elasticsearch_pipelines_defined_results.json
+  with_dict: "{{ elasticsearch_pipelines }}"
+  changed_when: >
+    elasticsearch_pipelines_define_results | length > 0
+  tags:
+    - elasticsearch_pipeline
+    - elasticsearch_pipeline_define
+
+- name: Remove pipelines
+  uri:
+    url: http://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key[1:] }}
+    method: DELETE
+    status_code: 200
+    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
+    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
+  register: elasticsearch_pipelines_remove_results
+  when: >
+    item.key[0] == '!' and
+    elasticsearch_pipelines_defined_results is defined and
+    item.key[1:] in elasticsearch_pipelines_defined_results.json
+  with_dict: "{{ elasticsearch_pipelines }}"
+  changed_when: >
+    elasticsearch_pipelines_remove_results | length > 0
+  tags:
+    - elasticsearch_pipeline
+    - elasticsearch_pipeline_define
 
 - name: Configure Elasticsearch JVM options
   template:
