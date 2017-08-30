@@ -116,58 +116,6 @@
     - elasticsearch_plugins
     - elasticsearch_plugins_remove
 
-- name: Get defined pipelines
-  uri:
-    url: http://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline
-    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
-    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
-  register: elasticsearch_pipelines_defined_results
-  when: >
-    elasticsearch_pipelines | length > 0
-  failed_when: false
-  tags:
-    - elasticsearch_pipeline
-    - elasticsearch_pipeline_check
-
-- name: Defined pipelines
-  uri:
-    url: http://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key }}
-    method: PUT
-    body: "{{ item.value | to_json }}"
-    status_code: 200
-    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
-    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
-  register: elasticsearch_pipelines_define_results
-  when: >
-    item.key[0] != '!' and
-    elasticsearch_pipelines_defined_results is defined and
-    item.key not in elasticsearch_pipelines_defined_results.json
-  with_dict: "{{ elasticsearch_pipelines }}"
-  changed_when: >
-    elasticsearch_pipelines_define_results | length > 0
-  tags:
-    - elasticsearch_pipeline
-    - elasticsearch_pipeline_define
-
-- name: Remove pipelines
-  uri:
-    url: http://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key[1:] }}
-    method: DELETE
-    status_code: 200
-    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
-    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
-  register: elasticsearch_pipelines_remove_results
-  when: >
-    item.key[0] == '!' and
-    elasticsearch_pipelines_defined_results is defined and
-    item.key[1:] in elasticsearch_pipelines_defined_results.json
-  with_dict: "{{ elasticsearch_pipelines }}"
-  changed_when: >
-    elasticsearch_pipelines_remove_results | length > 0
-  tags:
-    - elasticsearch_pipeline
-    - elasticsearch_pipeline_define
-
 - name: Configure Elasticsearch JVM options
   template:
     src: jvm.options.j2
@@ -204,3 +152,74 @@
   register: elasticsearch_service_started
   tags:
     - elasticsearch_service
+
+- name: Wait for Elasticsearch to start up
+  uri:
+    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}"
+    status_code: 200
+    timeout: 5
+    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
+    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
+    validate_certs: "{{ elasticsearch_pipeline_auth.validate_certs | default(omit) }}"
+  register: elasticsearch_service_status
+  # Keep trying for 5 mins in 5 sec intervals
+  retries: 60
+  delay: 5
+  until: >
+    'status' in elasticsearch_service_status and
+    elasticsearch_service_status['status'] == 200
+
+- name: Get defined pipelines
+  uri:
+    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline"
+    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
+    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
+    validate_certs: "{{ elasticsearch_pipeline_auth.validate_certs | default(omit) }}"
+  register: elasticsearch_pipelines_defined_results
+  when: >
+    elasticsearch_pipelines | length > 0
+  failed_when: false
+  tags:
+    - elasticsearch_pipeline
+    - elasticsearch_pipeline_check
+
+- name: Defined pipelines
+  uri:
+    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key }}"
+    method: PUT
+    body: "{{ item.value | to_json }}"
+    status_code: 200
+    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
+    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
+    validate_certs: "{{ elasticsearch_pipeline_auth.validate_certs | default(omit) }}"
+  register: elasticsearch_pipelines_define_results
+  when: >
+    item.key[0] != '!' and
+    elasticsearch_pipelines_defined_results is defined and
+    item.key not in elasticsearch_pipelines_defined_results.json
+  with_dict: "{{ elasticsearch_pipelines }}"
+  changed_when: >
+    elasticsearch_pipelines_define_results | length > 0
+  tags:
+    - elasticsearch_pipeline
+    - elasticsearch_pipeline_define
+
+- name: Remove pipelines
+  uri:
+    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key[1:] }}"
+    method: DELETE
+    status_code: 200
+    user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
+    password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
+    validate_certs: "{{ elasticsearch_pipeline_auth.validate_certs | default(omit) }}"
+  register: elasticsearch_pipelines_remove_results
+  when: >
+    item.key[0] == '!' and
+    elasticsearch_pipelines_defined_results is defined and
+    item.key[1:] in elasticsearch_pipelines_defined_results.json
+  with_dict: "{{ elasticsearch_pipelines }}"
+  changed_when: >
+    elasticsearch_pipelines_remove_results | length > 0
+  tags:
+    - elasticsearch_pipeline
+    - elasticsearch_pipeline_remove

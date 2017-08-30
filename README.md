@@ -76,6 +76,8 @@ Example
     elasticsearch_pipeline_auth:
       user: elastic
       password: changeme
+      # Whether to validate SSL cert
+      validate_certs: no
     elasticsearch_pipelines:
       # Name of the pipeline
       apache:
@@ -196,6 +198,20 @@ elasticsearch_config__custom: {}
 elasticsearch_config: "{{
   elasticsearch_config__default.update(elasticsearch_config__custom) }}{{
   elasticsearch_config__default }}"
+
+
+# Protocol to use for the communication with the server
+elasticsearch_protocol: "{{
+  'https'
+    if
+      'xpack' in elasticsearch_config and
+      'security' in elasticsearch_config.xpack and
+      'http' in elasticsearch_config.xpack.security and
+      'ssl' in elasticsearch_config.xpack.security.http and
+      'enabled' in elasticsearch_config.xpack.security.http.ssl and
+      elasticsearch_config.xpack.security.http.ssl.enabled == true
+    else
+  'http' }}"
 
 
 # Path to the sysconfig file
