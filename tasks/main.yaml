@@ -168,6 +168,9 @@
   until: >
     'status' in elasticsearch_service_status and
     elasticsearch_service_status['status'] == 200
+  tags:
+    - elasticsearch_pipeline
+    - elasticsearch_pipeline_check
 
 - name: Get defined pipelines
   uri:
