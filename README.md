@@ -15,7 +15,7 @@ Please report any issues or send PR.
 Example
 -------
 
-```
+```yaml
 ---
 
 # Example of how to use the role with default configuration
@@ -101,7 +101,7 @@ Role variables
 
 List of variables used by the role:
 
-```
+```yaml
 # YUM repo URL
 elasticsearch_yum_repo_url: "{{ elastic_yum_repo_url | default('https://artifacts.elastic.co/packages/6.x/yum') }}"
 
@@ -152,7 +152,7 @@ elasticsearch_pipelines: {}
 # Path to the config file
 elasticsearch_config_file: /etc/elasticsearch/elasticsearch.yml
 
-# Value of the bind_host option
+# Value of the network options
 elasticsearch_config_network_host: 127.0.0.1
 
 # Default network options
@@ -169,27 +169,47 @@ elasticsearch_config_network: "{{
   elasticsearch_config_network__default }}"
 
 
-# Value of the bind_host option
+# Value of the http options
 elasticsearch_config_http_port: 9200
 
-# Default network options
+# Default http options
 elasticsearch_config_http__default:
   port: "{{ elasticsearch_config_http_port }}"
 
-# Custom network options
+# Custom http options
 elasticsearch_config_http__custom: {}
 
-# Final network options
+# Final http options
 elasticsearch_config_http: "{{
   elasticsearch_config_http__default.update(
   elasticsearch_config_http__custom) }}{{
   elasticsearch_config_http__default }}"
 
 
+# Value of the path options
+elasticsearch_config_path_data: /var/lib/elasticsearch
+elasticsearch_config_path_logs: /var/log/elasticsearch
+
+# Default path options
+elasticsearch_config_path__default:
+  data: "{{ elasticsearch_config_path_data }}"
+  logs: "{{ elasticsearch_config_path_logs }}"
+
+# Custom path options
+elasticsearch_config_path__custom: {}
+
+# Final path options
+elasticsearch_config_path: "{{
+  elasticsearch_config_path__default.update(
+  elasticsearch_config_path__custom) }}{{
+  elasticsearch_config_path__default }}"
+
+
 # Default elasticsearch configuration
 elasticsearch_config__default:
   network: "{{ elasticsearch_config_network }}"
   http: "{{ elasticsearch_config_http }}"
+  path: "{{ elasticsearch_config_path }}"
 
 # Custom elasticsearch configuration
 elasticsearch_config__custom: {}
