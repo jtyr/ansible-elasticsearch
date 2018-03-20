@@ -186,20 +186,23 @@
     - elasticsearch_pipeline
     - elasticsearch_pipeline_check
 
-- name: Defined pipelines
+- name: Define pipelines
   uri:
     url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key }}"
     method: PUT
     body: "{{ item.value | to_json }}"
+    body_format: json
     status_code: 200
     user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
     password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
     validate_certs: "{{ elasticsearch_pipeline_auth.validate_certs | default(omit) }}"
   register: elasticsearch_pipelines_define_results
   when: >
-    item.key[0] != '!' and
-    elasticsearch_pipelines_defined_results is defined and
-    item.key not in elasticsearch_pipelines_defined_results.json
+    item.value | to_json(sort_keys=true) != elasticsearch_pipelines_defined_results.json[item.key] | to_json(sort_keys=true) or (
+      item.key[0] != '!' and
+      elasticsearch_pipelines_defined_results is defined and
+      item.key not in elasticsearch_pipelines_defined_results.json
+    )
   with_dict: "{{ elasticsearch_pipelines }}"
   changed_when: >
     elasticsearch_pipelines_define_results | length > 0
