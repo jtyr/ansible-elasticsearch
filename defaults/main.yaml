@@ -40,6 +40,9 @@ elasticsearch_plugins_flags: --batch
 elasticsearch_plugins: []
 
 
+# How through which to manage pipelines
+elasticsearch_pipeline_host: 127.0.0.1
+
 # Pipeline authentication
 elasticsearch_pipeline_auth: null
 
@@ -51,7 +54,7 @@ elasticsearch_pipelines: {}
 elasticsearch_config_file: /etc/elasticsearch/elasticsearch.yml
 
 # Value of the network options
-elasticsearch_config_network_host: 127.0.0.1
+elasticsearch_config_network_host: _local_
 
 # Default network options
 elasticsearch_config_network__default:

@@ -26,12 +26,10 @@ Example
 # Example of how to customize the configuration
 - hosts: myhost2
   vars:
-    # Bind the process to lo and eth1 network interfaces
-    elasticsearch_config_network_host:
-      - _local_
-      - _eth1_
+    # Bind the process to all interfaces
+    elasticsearch_config_network_host: _eth0_
     # Set JVM heap size
-    elasticsearch_jvm_options_x_ms: 512m
+    elasticsearch_jvm_options_x_ms: 1g
     elasticsearch_jvm_options_x_mx: 1g
     # Setup cluster
     elasticsearch_config__custom:
@@ -41,6 +39,7 @@ Example
         name: "{{ inventory_hostname }}"
       discovery:
         zen:
+          minimum_master_nodes: 2
           ping:
             unicast:
               hosts:
@@ -142,6 +141,9 @@ elasticsearch_plugins_flags: --batch
 elasticsearch_plugins: []
 
 
+# How through which to manage pipelines
+elasticsearch_pipeline_host: 127.0.0.1
+
 # Pipeline authentication
 elasticsearch_pipeline_auth: null
 
@@ -153,7 +155,7 @@ elasticsearch_pipelines: {}
 elasticsearch_config_file: /etc/elasticsearch/elasticsearch.yml
 
 # Value of the network options
-elasticsearch_config_network_host: 127.0.0.1
+elasticsearch_config_network_host: _local_
 
 # Default network options
 elasticsearch_config_network__default:

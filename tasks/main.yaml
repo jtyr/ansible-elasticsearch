@@ -155,7 +155,7 @@
 
 - name: Wait for Elasticsearch to start up
   uri:
-    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}"
+    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_pipeline_host }}:{{ elasticsearch_config_http_port }}"
     status_code: 200
     timeout: 5
     user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
@@ -174,7 +174,7 @@
 
 - name: Get defined pipelines
   uri:
-    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline"
+    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_pipeline_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline"
     user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
     password: "{{ elasticsearch_pipeline_auth.password | default(omit) }}"
     validate_certs: "{{ elasticsearch_pipeline_auth.validate_certs | default(omit) }}"
@@ -188,7 +188,7 @@
 
 - name: Define pipelines
   uri:
-    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key }}"
+    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_pipeline_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key }}"
     method: PUT
     body: "{{ item.value | to_json }}"
     body_format: json
@@ -212,7 +212,7 @@
 
 - name: Remove pipelines
   uri:
-    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_config_network_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key[1:] }}"
+    url: "{{ elasticsearch_protocol }}://{{ elasticsearch_pipeline_host }}:{{ elasticsearch_config_http_port }}/_ingest/pipeline/{{ item.key[1:] }}"
     method: DELETE
     status_code: 200
     user: "{{ elasticsearch_pipeline_auth.user | default(omit) }}"
