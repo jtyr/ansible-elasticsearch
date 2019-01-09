@@ -3,11 +3,11 @@ elasticsearch
 
 Role which installs and configures Elasticsearch.
 
-The configuration of the role is done in such way that it should not be
-necessary to change the role for any kind of configuration. All can be
-done either by changing role parameters or by declaring completely new
-configuration as a variable. That makes this role absolutely
-universal. See the examples below for more details.
+The configuration of the role is done in such way that it should not be necessary
+to change the role for any kind of configuration. All can be done either by
+changing role parameters or by declaring completely new configuration as a
+variable. That makes this role absolutely universal. See the examples below for
+more details.
 
 Please report any issues or send PR.
 
@@ -26,7 +26,7 @@ Example
 # Example of how to customize the configuration
 - hosts: myhost2
   vars:
-    # Bind the process to all interfaces
+    # Bind the process to a specific interface
     elasticsearch_config_network_host: _eth0_
     # Set JVM heap size
     elasticsearch_jvm_options_x_ms: 1g
@@ -116,6 +116,9 @@ elasticsearch_apt_repo_key: "{{ elastic_apt_repo_key | default('https://artifact
 # APT repo string
 elasticsearch_apt_repo_string: "{{ elastic_apt_repo_string | default('deb https://artifacts.elastic.co/packages/6.x/apt stable main') }}"
 
+# Additional APT repo parameters
+elasticsearch_apt_repo_params: "{{ elastic_apt_repo_params | default({}) }}"
+
 # Package to be installed (explicit version can be specified here)
 elasticsearch_pkg: elasticsearch
 
@@ -123,7 +126,7 @@ elasticsearch_pkg: elasticsearch
 elasticsearch_additional_pkgs:
   - "{{
         'java'
-          if ansible_os_family == 'RedHat'
+          if ansible_facts.os_family == 'RedHat'
           else
         'openjdk-8-jdk' }}"
 
@@ -166,9 +169,8 @@ elasticsearch_config_network__custom: {}
 
 # Final network options
 elasticsearch_config_network: "{{
-  elasticsearch_config_network__default.update(
-  elasticsearch_config_network__custom) }}{{
-  elasticsearch_config_network__default }}"
+  elasticsearch_config_network__default | combine(
+  elasticsearch_config_network__custom) }}"
 
 
 # Value of the http options
@@ -183,9 +185,8 @@ elasticsearch_config_http__custom: {}
 
 # Final http options
 elasticsearch_config_http: "{{
-  elasticsearch_config_http__default.update(
-  elasticsearch_config_http__custom) }}{{
-  elasticsearch_config_http__default }}"
+  elasticsearch_config_http__default | combine(
+  elasticsearch_config_http__custom) }}"
 
 
 # Value of the path options
@@ -202,9 +203,8 @@ elasticsearch_config_path__custom: {}
 
 # Final path options
 elasticsearch_config_path: "{{
-  elasticsearch_config_path__default.update(
-  elasticsearch_config_path__custom) }}{{
-  elasticsearch_config_path__default }}"
+  elasticsearch_config_path__default | combine(
+  elasticsearch_config_path__custom) }}"
 
 
 # Default elasticsearch configuration
@@ -218,8 +218,8 @@ elasticsearch_config__custom: {}
 
 # Final elasticsearch configuration
 elasticsearch_config: "{{
-  elasticsearch_config__default.update(elasticsearch_config__custom) }}{{
-  elasticsearch_config__default }}"
+  elasticsearch_config__default | combine(
+  elasticsearch_config__custom) }}"
 
 
 # Protocol to use for the communication with the server
@@ -266,8 +266,8 @@ elasticsearch_sysconfig__custom: {}
 
 # Final sysconfig options
 elasticsearch_sysconfig: "{{
-  elasticsearch_sysconfig__default.update(elasticsearch_sysconfig__custom) }}{{
-  elasticsearch_sysconfig__default }}"
+  elasticsearch_sysconfig__default | combine(
+  elasticsearch_sysconfig__custom) }}"
 
 
 # Path to the scripts directory
@@ -357,8 +357,8 @@ elasticsearch_jvm_options__custom: {}
 
 # Final JVM options
 elasticsearch_jvm_options: "{{
-  elasticsearch_jvm_options__default.update(elasticsearch_jvm_options__custom) }}{{
-  elasticsearch_jvm_options__default }}"
+  elasticsearch_jvm_options__default | combine(
+  elasticsearch_jvm_options__custom) }}"
 ```
 
 

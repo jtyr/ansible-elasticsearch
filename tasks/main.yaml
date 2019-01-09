@@ -3,8 +3,8 @@
 - name: Test distribution
   assert:
     that: >
-      ansible_os_family == 'RedHat' or
-      ansible_os_family == 'Debian'
+      ansible_facts.os_family == 'RedHat' or
+      ansible_facts.os_family == 'Debian'
 
 - name: Create Elasticsearch YUM repo file
   yum_repository:
@@ -12,9 +12,9 @@
     description: Elastic YUM repo
     baseurl: "{{ elasticsearch_yum_repo_url }}"
     gpgkey: "{{ elasticsearch_yum_repo_key }}"
-    params: "{{ elasticsearch_yum_repo_params }}"
+  args: "{{ elasticsearch_yum_repo_params }}"
   when: >
-    ansible_os_family == 'RedHat'
+    ansible_facts.os_family == 'RedHat'
   tags:
     - elasticsearch_pkg
 
@@ -22,7 +22,7 @@
   apt_key:
     url: "{{ elasticsearch_apt_repo_key }}"
   when: >
-    ansible_os_family == 'Debian'
+    ansible_facts.os_family == 'Debian'
   tags:
     - elasticsearch_pkg
     - elasticsearch_aptrepo
@@ -30,8 +30,9 @@
 - name: Create Elasticsearch APT repo file
   apt_repository:
     repo: "{{ elasticsearch_apt_repo_string }}"
+  args: "{{ elasticsearch_apt_repo_params }}"
   when: >
-    ansible_os_family == 'Debian'
+    ansible_facts.os_family == 'Debian'
   tags:
     - elasticsearch_pkg
     - elasticsearch_aptrepo
@@ -133,7 +134,7 @@
   notify:
     - Restart Elasticsearch service
   when: >
-    ansible_os_family == 'RedHat'
+    ansible_facts.os_family == 'RedHat'
   tags:
     - elasticsearch_config
     - elasticsearch_sysconfig
